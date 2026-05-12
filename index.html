@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#0b3d91">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NDF Scan">
+<title>NDF Scan — Narbonne Accessoires</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<style>
+  :root {
+    --na-blue: #0b3d91;
+    --na-blue-dark: #082b66;
+    --na-accent: #ff6b00;
+    --bg: #f4f6fa;
+    --card: #fff;
+    --border: #e2e6ee;
+    --text: #1a1f2e;
+    --muted: #6b7280;
+    --ok: #10b981;
+    --warn: #f59e0b;
+    --err: #ef4444;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         background: var(--bg); color: var(--text); padding-bottom: 100px;
+         padding-top: env(safe-area-inset-top); }
+  header { background: var(--na-blue); color: #fff; padding: 14px 16px; position: sticky; top: 0; z-index: 10;
+           box-shadow: 0 2px 8px rgba(0,0,0,.1);
+           padding-top: calc(14px + env(safe-area-inset-top)); }
+  header h1 { margin: 0; font-size: 17px; font-weight: 600; }
+  header .sub { font-size: 11px; opacity: .8; margin-top: 2px; display: flex; justify-content: space-between; }
+  main { padding: 16px; max-width: 720px; margin: 0 auto; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+          margin-bottom: 14px; }
+  .card h2 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--na-blue); text-transform: uppercase;
+             letter-spacing: .03em; }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+  input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+                            font-size: 15px; font-family: inherit; background: #fff; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--na-blue); border-color: var(--na-blue); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  button { background: var(--na-blue); color: #fff; border: none; border-radius: 8px; padding: 12px 16px;
+           font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; transition: background .15s; }
+  button:hover { background: var(--na-blue-dark); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.secondary { background: #fff; color: var(--na-blue); border: 1.5px solid var(--na-blue); }
+  button.danger { background: var(--err); }
+  button.accent { background: var(--na-accent); }
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ticket { border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px;
+            background: #fafbfd; }
+  .ticket-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; }
+  .ticket-head strong { font-size: 15px; flex: 1; }
+  .ticket-meta { font-size: 12px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;
+           text-transform: uppercase; }
+  .badge.ok { background: #d1fae5; color: #065f46; }
+  .scan-area { border: 2px dashed var(--border); border-radius: 12px; padding: 28px 16px; text-align: center;
+               background: #fafbfd; }
+  .scan-area svg { width: 48px; height: 48px; color: var(--na-blue); margin-bottom: 8px; }
+  #preview-img { max-width: 100%; max-height: 240px; border-radius: 8px; margin: 8px 0; display: block; }
+  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+  .summary div { background: #f0f3f9; padding: 10px; border-radius: 8px; text-align: center; }
+  .summary div b { display: block; font-size: 18px; color: var(--na-blue); }
+  .summary div span { font-size: 11px; color: var(--muted); }
+  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1a1f2e;
+           color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 14px; z-index: 100;
+           opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .footer-cta { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--border);
+                padding: 12px 16px; display: flex; gap: 10px; z-index: 5;
+                padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+  .footer-cta button { flex: 1; }
+  details { background: #f0f3f9; border-radius: 8px; padding: 8px 12px; margin-top: 10px; font-size: 13px; }
+  details summary { cursor: pointer; font-weight: 500; color: var(--muted); }
+  details pre { font-size: 11px; overflow-x: auto; white-space: pre-wrap; word-break: break-all;
+                max-height: 200px; overflow-y: auto; }
+  .empty { text-align: center; padding: 30px 16px; color: var(--muted); font-size: 14px; }
+  .api-key-banner { background: #fef3c7; border: 1px solid var(--warn); color: #78350f; padding: 10px 12px;
+                    border-radius: 8px; font-size: 13px; margin-bottom: 14px; }
+  .api-key-banner button { width: auto; padding: 6px 12px; font-size: 12px; margin-top: 8px; }
+  .quota-info { background: #ecfdf5; border: 1px solid var(--ok); color: #065f46; padding: 8px 12px;
+                border-radius: 8px; font-size: 12px; margin-bottom: 14px; display: flex; justify-content: space-between; }
+  .install-prompt { background: var(--na-blue); color: white; padding: 12px 16px; border-radius: 12px;
+                    margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .install-prompt button { width: auto; padding: 8px 14px; font-size: 13px; background: white; color: var(--na-blue); }
+  .install-prompt .close { background: transparent; color: white; border: none; padding: 4px 8px; font-size: 18px; cursor: pointer; }
+  .offline-badge { background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .online-badge { color: #d1fae5; font-size: 11px; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3);
+             border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle;
+             margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .queue-badge { background: var(--warn); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 6px; }
+  @media (max-width: 380px) {
+    main { padding: 12px; }
+    .row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🧾 NDF Scan — Note de Frais</h1>
+  <div class="sub">
+    <span>Narbonne Accessoires · v0.3</span>
+    <span id="netStatus" class="online-badge">● en ligne</span>
+  </div>
+</header>
+
+<main>
+  <div id="installPrompt" class="install-prompt" style="display:none">
+    <div>📱 Installer l'app sur l'écran d'accueil ?</div>
+    <button onclick="installPWA()">Installer</button>
+    <button class="close" onclick="dismissInstall()">×</button>
+  </div>
+
+  <div id="apiKeyBanner" class="api-key-banner" style="display:none">
+    ⚠️ Clé API Google Vision non configurée — le scan auto est désactivé.
+    <br><button class="secondary" onclick="promptApiKey()">Configurer ma clé</button>
+    <br><small style="opacity:.8">Gratuit jusqu'à 1000 tickets/mois</small>
+  </div>
+
+  <div class="quota-info" id="quotaInfo" style="display:none">
+    <span>📊 Scans ce mois : <b id="quotaUsed">0</b> / 1000 gratuits</span>
+    <span id="quotaPct" style="font-weight:600;">0%</span>
+  </div>
+
+  <div class="card">
+    <h2>👤 Identité</h2>
+    <div class="row">
+      <div><label>Nom *</label><input id="nom" placeholder="DUPONT" autocomplete="family-name"></div>
+      <div><label>Prénom *</label><input id="prenom" placeholder="Jean" autocomplete="given-name"></div>
+    </div>
+    <div class="row">
+      <div><label>Mois *</label><input id="mois" type="month"></div>
+      <div><label>Véhicule / Immat. *</label><input id="immat" placeholder="AB-123-CD"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📸 Ajouter un ticket <span id="queueBadge" class="queue-badge" style="display:none">0 en attente</span></h2>
+    <div class="scan-area">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      <div style="font-size: 14px; color: var(--muted); margin-bottom: 12px;">
+        Prends en photo ton ticket ou ta facture
+      </div>
+      <input type="file" id="fileInput" accept="image/*" capture="environment"
+             style="display:none" onchange="handleFile(this.files[0])">
+      <div class="btn-row">
+        <button onclick="document.getElementById('fileInput').click()">📷 Scanner</button>
+        <button class="secondary" onclick="addManualTicket()">✏️ Saisie manuelle</button>
+      </div>
+    </div>
+    <img id="preview-img" style="display:none">
+    <div id="processing" style="display:none; text-align:center; padding:14px; color:var(--muted)">
+      <span class="spinner"></span> Lecture du ticket en cours…
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Tickets de la NDF (<span id="ticketCount">0</span>)</h2>
+    <div id="ticketList"><div class="empty">Aucun ticket scanné pour l'instant.</div></div>
+    <div class="summary" id="summary" style="display:none">
+      <div><b id="totalTTC">0,00 €</b><span>Total TTC</span></div>
+      <div><b id="totalHT">0,00 €</b><span>Total HT</span></div>
+      <div><b id="totalTVA">0,00 €</b><span>Total TVA</span></div>
+    </div>
+  </div>
+</main>
+
+<div id="editorOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:50;
+     padding:20px; overflow-y:auto;">
+  <div style="background:#fff; border-radius:12px; max-width:520px; margin:20px auto; padding:18px;">
+    <h2 style="margin:0 0 16px; color:var(--na-blue); font-size:16px;">Vérifier le ticket</h2>
+    <img id="editorImg" style="max-width:100%; max-height:180px; border-radius:8px; margin-bottom:12px; display:none;">
+    <div class="row">
+      <div><label>Date *</label><input id="edDate" type="date"></div>
+      <div><label>Montant TTC *</label><input id="edTTC" type="number" step="0.01" inputmode="decimal" placeholder="0,00"></div>
+    </div>
+    <div style="margin-bottom:10px;"><label>Catégorie *</label>
+      <select id="edCategory"></select>
+    </div>
+    <div style="margin-bottom:10px;"><label>Marchand détecté</label>
+      <input id="edMerchant" placeholder="">
+    </div>
+    <div style="margin-bottom:10px;"><label>Motif / Objet</label>
+      <input id="edMotif" placeholder="Ex: déplacement client Lyon">
+    </div>
+    <div class="row">
+      <div><label>Site service</label><input id="edSite" placeholder="Ex: XC205"></div>
+      <div><label>N° ODM</label><input id="edODM" placeholder="optionnel"></div>
+    </div>
+    <div id="edKmRow" style="display:none; margin-bottom:10px;">
+      <label>Trajet effectué (si km)</label>
+      <input id="edTrajet" placeholder="Narbonne → Béziers AR">
+    </div>
+    <details>
+      <summary>Texte OCR brut (pour vérification)</summary>
+      <pre id="edOcrRaw"></pre>
+    </details>
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="secondary" onclick="cancelEdit()">Annuler</button>
+      <button onclick="saveTicket()">✓ Valider</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer-cta">
+  <button class="secondary" onclick="resetAll()">🗑 Reset</button>
+  <button class="accent" onclick="generateNDF()" id="genBtn" disabled>📥 Générer la NDF Excel</button>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
